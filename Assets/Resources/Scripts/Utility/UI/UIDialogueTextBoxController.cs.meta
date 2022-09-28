@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: cd25e477a04ce8243b862387087cf029
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - m_SpeakerText: {instanceID: 0}
+  - m_DialogueText: {instanceID: 0}
+  - m_ChoicesBoxTransform: {instanceID: 0}
+  - m_ChoiceControllerPrefab: {fileID: 8385603839238864653, guid: 2a96b9113407fa241a588d67778e1e80, type: 3}
+  - m_DialogueChannel: {fileID: 11400000, guid: 3193468107bb24e4aa503e924cb8ed06, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
