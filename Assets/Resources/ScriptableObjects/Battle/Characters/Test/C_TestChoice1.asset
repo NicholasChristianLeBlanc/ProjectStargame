@@ -12,6 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e09d694881d1b9c4daf2a03072b6c6f7, type: 3}
   m_Name: C_TestChoice1
   m_EditorClassIdentifier: 
-  m_ChoiceText: 
-  m_Responses: []
-  m_Satisfaction: 0
+  m_ChoiceText: Test
+  m_Responses:
+  - 1
+  - 2
+  - 3
+  m_Satisfaction: 10
+  m_ResponseType: 0
+  m_SatisfactionScales: 0
+  m_SatisfactionScaling: 0

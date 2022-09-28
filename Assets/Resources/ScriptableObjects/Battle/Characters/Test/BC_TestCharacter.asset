@@ -14,10 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_CharacterImage: {fileID: 10915, guid: 0000000000000000f000000000000000, type: 0}
   m_CharacterName: Battle Test
-  m_ActChoices:
-  - Test
-  m_ActSatisfaction:
-  - 10
+  m_BattleChoices:
+  - {fileID: 11400000, guid: 266d0c611fcb7d041b508451dad647d1, type: 2}
   m_MaxSatisfaction: 100
   m_CurrentSatisfaction: 0
   m_MaxHealth: 0

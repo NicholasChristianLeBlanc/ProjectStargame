@@ -10,13 +10,17 @@ public class BattleChoice : ScriptableObject
         cycle
     }
 
+    [Header("Default Variables")]
     [SerializeField] private string m_ChoiceText;
     [SerializeField] private string[] m_Responses;
     [SerializeField] private float m_Satisfaction;
 
+    [Header("Behavior Variables")]
     [SerializeField] [Tooltip("straight - switches responses numerically until the index reaches max in which case the response will stay the same " +
                               "\n\nrandom - chooses a random response from the list of responses" +
                               "\n\ncycle - similar to straight but when the index maxes out it resets the index at zero to start counting up again")] private ResponseTypes m_ResponseType;
+    [SerializeField] bool m_SatisfactionScales = false;
+    [SerializeField] [Range(-100.0f, 100.0f)] float m_SatisfactionScaling = 0.0f;
 
     private int m_CurrentResponseIndex = 0;
 
@@ -29,6 +33,7 @@ public class BattleChoice : ScriptableObject
         string returnResponse = Responses[m_CurrentResponseIndex];
 
         TryIncreaseIndex();
+        ScaleSatisfaction();
 
         return returnResponse;
     }
@@ -54,6 +59,58 @@ public class BattleChoice : ScriptableObject
                 else if (m_ResponseType == ResponseTypes.cycle)
                 {
                     m_CurrentResponseIndex = 0;
+                }
+            }
+        }
+    }
+
+    private void ScaleSatisfaction()
+    {
+        if (m_SatisfactionScales)
+        {
+            if (m_Satisfaction < 0)
+            {
+                if (m_SatisfactionScaling < 0)
+                {
+                    m_Satisfaction -= Mathf.Abs(m_Satisfaction * (m_SatisfactionScaling / 100));
+                }
+                else if (m_SatisfactionScaling > 0)
+                {
+                    m_Satisfaction += Mathf.Abs(m_Satisfaction * (m_SatisfactionScaling / 100));
+                }
+                else // scaling is set to zero
+                {
+                    m_SatisfactionScales = false;
+                }
+            }
+            else if (m_Satisfaction > 0)
+            {
+                if (m_SatisfactionScaling < 0)
+                {
+                    m_Satisfaction -= Mathf.Abs(m_Satisfaction * (m_SatisfactionScaling / 100));
+                }
+                else if (m_SatisfactionScaling > 0)
+                {
+                    m_Satisfaction += Mathf.Abs(m_Satisfaction * (m_SatisfactionScaling / 100));
+                }
+                else // scaling is set to zero
+                {
+                    m_SatisfactionScales = false;
+                }
+            }
+            else // Satisfaction is zero
+            {
+                if (m_SatisfactionScaling < 0)
+                {
+                    m_Satisfaction -= Mathf.Abs(m_SatisfactionScaling / 100);
+                }
+                else if (m_SatisfactionScaling > 0)
+                {
+                    m_Satisfaction += Mathf.Abs(m_SatisfactionScaling / 100);
+                }
+                else // scaling is set to zero
+                {
+                    m_SatisfactionScales = false;
                 }
             }
         }
