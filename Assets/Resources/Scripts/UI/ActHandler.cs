@@ -20,6 +20,7 @@ public class ActHandler : MonoBehaviour
     [SerializeField] Button btn_Back;
 
     private GameObject currentElement;
+    private GameObject lastElement;
 
     [SerializeField] private BattleCharacter character;
 
@@ -30,9 +31,9 @@ public class ActHandler : MonoBehaviour
             character = newCharacter;
 
             int index = 0;
-            foreach(string choice in character.ActChoices)
+            foreach(BattleChoice bc in character.BattleChoices)
             {
-                choiceTexts[index].text = choice;
+                choiceTexts[index].text = bc.ChoiceText;
                 choiceButtons[index].gameObject.SetActive(true);
 
                 index++;
@@ -89,16 +90,18 @@ public class ActHandler : MonoBehaviour
         {
             if (currentElement.TryGetComponent<MenuButtons>(out MenuButtons mb))
             {
-                if (mb.GetLeft() != null)
+                if (mb.GetLeft().activeInHierarchy)
                 {
                     SetSelected(mb.GetLeft());
                 }
-            }
-            else
-            {
-                if (btn_Back != null)
+                else if (btn_Back != null && currentElement != btn_Back.gameObject)
                 {
+                    lastElement = currentElement;
                     SetSelected(btn_Back.gameObject);
+                }
+                else if (lastElement != null)
+                {
+                    SetSelected(lastElement);
                 }
             }
         }
@@ -110,16 +113,18 @@ public class ActHandler : MonoBehaviour
         {
             if (currentElement.TryGetComponent<MenuButtons>(out MenuButtons mb))
             {
-                if (mb.GetRight() != null)
+                if (mb.GetRight().activeInHierarchy)
                 {
                     SetSelected(mb.GetRight());
                 }
-            }
-            else
-            {
-                if (btn_Back != null)
+                else if (btn_Back != null && currentElement != btn_Back.gameObject)
                 {
+                    lastElement = currentElement;
                     SetSelected(btn_Back.gameObject);
+                }
+                else if (lastElement != null)
+                {
+                    SetSelected(lastElement);
                 }
             }
         }
@@ -131,16 +136,18 @@ public class ActHandler : MonoBehaviour
         {
             if (currentElement.TryGetComponent<MenuButtons>(out MenuButtons mb))
             {
-                if (mb.GetUp() != null)
+                if (mb.GetUp().activeInHierarchy)
                 {
                     SetSelected(mb.GetUp());
                 }
-                else
+                else if (btn_Back != null && currentElement != btn_Back.gameObject)
                 {
-                    if (btn_Back != null)
-                    {
-                        SetSelected(btn_Back.gameObject);
-                    }
+                    lastElement = currentElement;
+                    SetSelected(btn_Back.gameObject);
+                }
+                else if (lastElement != null)
+                {
+                    SetSelected(lastElement);
                 }
             }
         }
@@ -152,16 +159,18 @@ public class ActHandler : MonoBehaviour
         {
             if (currentElement.TryGetComponent<MenuButtons>(out MenuButtons mb))
             {
-                if (mb.GetDown() != null)
+                if (mb.GetDown().activeInHierarchy)
                 {
                     SetSelected(mb.GetDown());
                 }
-                else
+                else if (btn_Back != null && currentElement != btn_Back.gameObject)
                 {
-                    if (btn_Back != null)
-                    {
-                        SetSelected(btn_Back.gameObject);
-                    }
+                    lastElement = currentElement;
+                    SetSelected(btn_Back.gameObject);
+                }
+                else if (lastElement != null)
+                {
+                    SetSelected(lastElement);
                 }
             }
         }
@@ -170,5 +179,7 @@ public class ActHandler : MonoBehaviour
     public void PerformAct(int actToPerform)
     {
         character.PerformAct(actToPerform);
+
+        //Debug.Log(character.GetResponse());
     }
 }

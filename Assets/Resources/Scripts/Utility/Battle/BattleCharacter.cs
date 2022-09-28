@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Scriptable Objects/Narration/Battle Character")]
@@ -6,8 +8,7 @@ public class BattleCharacter : ScriptableObject
     [SerializeField] private Sprite m_CharacterImage;
     [SerializeField] private string m_CharacterName;
 
-    [SerializeField] private string[] m_ActChoices; // what options the player will have when they choose "act" in battle with this character
-    [SerializeField] private float[] m_ActSatisfaction; // how much satisfaction the character will gain from the choices
+    [SerializeField] private BattleChoice[] m_BattleChoices;
 
     [SerializeField] private float m_MaxSatisfaction;
     [SerializeField] private float m_CurrentSatisfaction;
@@ -15,16 +16,15 @@ public class BattleCharacter : ScriptableObject
     [SerializeField] [Range(0.0f, 1000.0f)] private float m_MaxHealth;
     [SerializeField] [Range(0.0f, 1000.0f)] private float m_CurrentHealth;
 
+    int lastChoice = 0;
+
     public Sprite CharacterImage => m_CharacterImage;
     public string CharacterName => m_CharacterName;
 
-    public string[] ActChoices => m_ActChoices;
-    public float[] ActSatisfaction => m_ActSatisfaction;
+    public BattleChoice[] BattleChoices => m_BattleChoices;
 
     public float MaxSatisfaction => m_MaxSatisfaction;
     public float CurrentSatisfaction => m_CurrentSatisfaction;
-
-
 
     public void SetMaxSatisfaction(float newSatisfaction)
     {
@@ -33,14 +33,37 @@ public class BattleCharacter : ScriptableObject
 
     public void PerformAct(int choice)
     {
-        if (choice <= m_ActChoices.Length - 1 && choice <= m_ActSatisfaction.Length - 1)
+        if (choice <= m_BattleChoices.Length - 1)
         {
-            m_CurrentSatisfaction += m_ActSatisfaction[choice];
+            m_CurrentSatisfaction += m_BattleChoices[choice].Satisfaction;
+
+            lastChoice = choice;
         }
     }
 
     public void ResetSatisfaction()
     {
         m_CurrentSatisfaction = 0;
+    }
+    public void ResetSatisfaction(bool decreaseMax, float amountToDecrease)
+    {
+        m_CurrentSatisfaction = 0;
+
+        if (decreaseMax)
+        {
+            if (MaxSatisfaction - amountToDecrease <= 0)
+            {
+                SetMaxSatisfaction(0);
+            }
+            else
+            {
+                SetMaxSatisfaction(MaxSatisfaction - amountToDecrease);
+            }
+        }
+    }
+
+    public string GetResponse()
+    {
+        return BattleChoices[lastChoice].GetResponse();
     }
 }

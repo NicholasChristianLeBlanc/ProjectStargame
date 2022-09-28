@@ -365,6 +365,8 @@ public class BattleUIHandler : MonoBehaviour
             if (collectionText != null)
             {
                 collectionText.text = "Got Away Safely";
+
+                character.ResetSatisfaction();
             }
         }
         else if (character != null && character.CurrentSatisfaction < character.MaxSatisfaction)
