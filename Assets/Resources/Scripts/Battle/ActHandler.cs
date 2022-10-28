@@ -9,6 +9,7 @@ public class ActHandler : MonoBehaviour
     [SerializeField] BattleUIHandler battleHandler;
 
     [Header("Selection References")]
+    [SerializeField] GameObject actButton;
     [SerializeField] GameObject startingElement;
     [SerializeField] GameObject selectionIcon;
     [SerializeField] float selectionOffsetH = 0.0f;
@@ -179,6 +180,20 @@ public class ActHandler : MonoBehaviour
     public void PerformAct(int actToPerform)
     {
         character.PerformAct(actToPerform);
+
+        this.gameObject.SetActive(false);
+
+        if (battleHandler != null)
+        {
+            battleHandler.SetInAct(false);
+
+            if (actButton != null)
+            {
+                battleHandler.SetSelectedPointer(actButton);
+            }
+
+            battleHandler.StartCharacterAttack();
+        }
 
         //Debug.Log(character.GetResponse());
     }

@@ -24,6 +24,20 @@ public class BattleTrigger : MonoBehaviour
         }
     }
 
+    private void LateUpdate()
+    {
+        if (triggerCharacters.Count > 0)
+        {
+            foreach (BattleCharacter character in triggerCharacters)
+            {
+                if (character.CurrentHealth <= 0)
+                {
+                    triggerCharacters.Remove(character);
+                }
+            }
+        }
+    }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (triggerOnCollision && collision.gameObject == Player)

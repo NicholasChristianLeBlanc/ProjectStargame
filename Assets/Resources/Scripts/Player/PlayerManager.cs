@@ -14,6 +14,8 @@ public class PlayerManager : MonoBehaviour
     Movement moveManager;
     PlayerInputs c;
 
+    [SerializeField] Camera mainCam;
+
     [Header("UI")]
     [SerializeField] private UIDialogueTextBoxController textController;
     [SerializeField] [Range(0.0f, 2.5f)] private float dialogueCounter = 0.1f;
@@ -22,9 +24,12 @@ public class PlayerManager : MonoBehaviour
     float d_counter;
 
     [Header("Battle")]
+    [SerializeField] GameObject battlePrefab;
     [SerializeField] BattleUIHandler battleUIHandler;
     [SerializeField] GameObject battleUi;
     bool inBattle = false;
+    GameObject battle;
+    BattleHandler battleHandler;
 
     [Header("Inventory")]
     [SerializeField] InventoryItem currentWeapon;
@@ -40,6 +45,11 @@ public class PlayerManager : MonoBehaviour
         moveManager = GetComponent<Movement>();
 
         interaction = GetComponent<InteractionInstigator>();
+
+        if (battlePrefab != null && battlePrefab.TryGetComponent<BattleHandler>(out BattleHandler bh))
+        {
+            battleHandler = bh;
+        }
 
         c = new PlayerInputs();
 
@@ -60,6 +70,16 @@ public class PlayerManager : MonoBehaviour
         {
             moveManager.MoveHorizontal(horizontalMove);
             moveManager.MoveVertical(verticalMove);
+        }
+        else if (inBattle)
+        {
+            if (battleHandler != null)
+            {
+                battleHandler.MoveHorizontal(horizontalMove);
+                battleHandler.MoveVertical(verticalMove);
+
+                //Debug.Log("Horizontal: " + horizontalMove + " Vertical: " + verticalMove);
+            }
         }
 
         if (d_counter > 0)
@@ -159,10 +179,40 @@ public class PlayerManager : MonoBehaviour
     {
         if (battleUi != null)
         {
-            battleUIHandler.SetCharacter(battleCharacter);
+            if (battlePrefab != null)
+            {
+                battle = Instantiate(battlePrefab, Vector3.zero, Quaternion.identity);
+
+                if (battle != null && battle.TryGetComponent<BattleHandler>(out BattleHandler bh))
+                {
+                    battleHandler = bh;
+                }
+            }
+
+            if (battleUIHandler != null)
+            {
+                battleUIHandler.SetCharacter(battleCharacter);
+
+                if (battleHandler != null)
+                {
+                    battleUIHandler.SetBattleHandler(battleHandler);
+                    battleHandler.SetUiHandler(battleUIHandler);
+                }
+            }
+            
             battleUi.SetActive(true);
 
             SetInBattle(true);
+        }
+
+        if (mainCam != null && mainCam.gameObject.TryGetComponent<AudioListener>(out AudioListener listener))
+        {
+            listener.enabled = false;
+        }
+
+        if (gameObject.TryGetComponent<BoxCollider2D>(out BoxCollider2D bc2d))
+        {
+            bc2d.enabled = false;
         }
     }
 
@@ -170,9 +220,26 @@ public class PlayerManager : MonoBehaviour
     {
         if (battleUi != null)
         {
+            if (battle != null)
+            {
+                Destroy(battle);
+
+                battleHandler = null;
+            }
+
             battleUi.SetActive(false);
 
             SetInBattle(false);
+        }
+
+        if (mainCam != null && mainCam.gameObject.TryGetComponent<AudioListener>(out AudioListener listener))
+        {
+            listener.enabled = true;
+        }
+
+        if (gameObject.TryGetComponent<BoxCollider2D>(out BoxCollider2D bc2d))
+        {
+            bc2d.enabled = true;
         }
     }
 

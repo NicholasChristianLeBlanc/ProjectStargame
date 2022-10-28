@@ -14,9 +14,12 @@ public class BattleUIHandler : MonoBehaviour
     float currentDisplayedHealth, currentDisplayedLoss;
 
     [Header("Healthbar")]
+    [SerializeField] GameObject healthbarHolder;
     [SerializeField] Image healthbar;
     [SerializeField] Image healthloss;
     [SerializeField] TextMeshProUGUI healthText;
+    [SerializeField] Transform selectionWaypoint;
+    [SerializeField] Transform fightWaypoint;
 
     [Header("Interactions")]
     [SerializeField] GameObject selectionIcon;
@@ -30,24 +33,40 @@ public class BattleUIHandler : MonoBehaviour
     [SerializeField] Button btn_run;
 
     [Header("Tabs")]
-    [SerializeField] GameObject inventoryTab;
+    [SerializeField] GameObject selectionZone;
+    [SerializeField] GameObject fightTab;
     [SerializeField] GameObject actTab;
+    [SerializeField] GameObject inventoryTab;
 
+    [Header("Battle")]
+    [SerializeField] GameObject battleBackground;
+    [SerializeField] BattleHandler battleHandler;
+
+    [Header("Debug")]
     [SerializeField] BattleCharacter character;
 
-    InventoryHandler inventoryHandler;
+    // Handlers
+    AttackHandler attackHandler;
     ActHandler actHandler;
+    InventoryHandler inventoryHandler;
+
+    bool characterAttacking;
 
     bool inTab = false;
-    bool inInventory = false;
+    bool inFight = false;
     bool inAct = false;
-
+    bool inInventory = false;
+    
     bool tabSelected = false;
 
+    bool moveHealth = false;
+
+    Transform healthWaypoint;
     GameObject currentElement;
 
     float t = 0.0f;
     float t2 = 0.0f;
+    float t3 = 0.0f;
 
     PlayerInputs c;
 
@@ -79,22 +98,31 @@ public class BattleUIHandler : MonoBehaviour
             MoveSelection(currentElement.transform);
         }
 
-        if (inventoryTab.TryGetComponent<InventoryHandler>(out InventoryHandler ih))
+        if ( fightTab.TryGetComponent<AttackHandler>(out AttackHandler attack))
         {
-            inventoryHandler = ih;
+            attackHandler = attack;
         }
         else
         {
-            Debug.LogError("inventory tab is missing an inventory handler reference in " + gameObject.name);
+            Debug.LogError("fight tab is missing a fight handler reference in " + gameObject.name);
         }
 
-        if (actTab.TryGetComponent<ActHandler>(out ActHandler ah))
+        if (actTab.TryGetComponent<ActHandler>(out ActHandler act))
         {
-            actHandler = ah;
+            actHandler = act;
         }
         else
         {
             Debug.LogError("act tab is missing an act handler reference in " + gameObject.name);
+        }
+
+        if (inventoryTab.TryGetComponent<InventoryHandler>(out InventoryHandler inventory))
+        {
+            inventoryHandler = inventory;
+        }
+        else
+        {
+            Debug.LogError("inventory tab is missing an inventory handler reference in " + gameObject.name);
         }
 
         c = new PlayerInputs();
@@ -112,9 +140,19 @@ public class BattleUIHandler : MonoBehaviour
     
     private void OnEnable()
     {
+        if (character != null && attackHandler != null)
+        {
+            attackHandler.SetCharacter(character);
+        }
+        
         if (character != null && actHandler != null)
         {
             actHandler.SetCharacter(character);
+        }
+
+        if (character != null && character.AttacksFirst)
+        {
+            StartCharacterAttack();
         }
     }
 
@@ -122,17 +160,35 @@ public class BattleUIHandler : MonoBehaviour
     {
         
     }
-    
 
     private void Update()
     {
-        if (inInventory || inAct)
+        if (inFight || inAct || inInventory)
         {
             inTab = true;
         }
         else
         {
             inTab = false;
+        }
+
+        if (moveHealth)
+        {
+            if (healthbar != null)
+            {
+                healthbarHolder.transform.position = Vector2.Lerp(healthbar.transform.position, healthWaypoint.position, t3);
+
+                if (t3 < 1)
+                {
+                    t3 += Time.deltaTime / 2;
+                }
+                else
+                {
+                    healthbarHolder.transform.position = healthWaypoint.position;
+
+                    moveHealth = false;
+                }
+            }
         }
 
         healthText.text = Mathf.Ceil(playerHealth.GetCurrentHealth()).ToString();
@@ -232,27 +288,45 @@ public class BattleUIHandler : MonoBehaviour
 
             SetSelected(btn_items.gameObject);
         }
+        if (inAct)
+        {
+            if (actTab != null)
+            {
+                actTab.SetActive(false);
+            }
+
+            inAct = false;
+
+            SetSelected(btn_act.gameObject);
+        }
     }
 
     private void MoveLeft()
     {
-        if (currentElement != null && !inTab)
+        if (characterAttacking)
         {
-            if (currentElement.TryGetComponent<MenuButtons>(out MenuButtons mb))
+            
+        }
+        else
+        {
+            if (currentElement != null && !inTab)
             {
-                if (mb.GetLeft() != null)
+                if (currentElement.TryGetComponent<MenuButtons>(out MenuButtons mb))
                 {
-                    SetSelected(mb.GetLeft());
+                    if (mb.GetLeft() != null)
+                    {
+                        SetSelected(mb.GetLeft());
+                    }
                 }
             }
-        }
-        else if (inInventory && inventoryHandler != null)
-        {
-            inventoryHandler.MoveLeft();
-        }
-        else if (inAct && actHandler != null)
-        {
-            actHandler.MoveLeft();
+            else if (inInventory && inventoryHandler != null)
+            {
+                inventoryHandler.MoveLeft();
+            }
+            else if (inAct && actHandler != null)
+            {
+                actHandler.MoveLeft();
+            }
         }
     }
 
@@ -323,14 +397,16 @@ public class BattleUIHandler : MonoBehaviour
     }
     #endregion
 
-    public void SetInInventory(bool newBool)
+    #region Tabs
+    public void SetInFight(bool newBool)
     {
-        inInventory = newBool;
-        
-        if (inInventory)
+        inFight = newBool;
+
+        if (inFight)
         {
             inTab = true;
             inAct = false;
+            inInventory = false;
         }
     }
 
@@ -341,9 +417,28 @@ public class BattleUIHandler : MonoBehaviour
         if (inAct)
         {
             inTab = true;
+            inFight = false;
             inInventory = false;
         }
     }
+
+    public void SetInInventory(bool newBool)
+    {
+        inInventory = newBool;
+        
+        if (inInventory)
+        {
+            inTab = true;
+            inFight = false;
+            inAct = false;
+        }
+    }
+
+    public void SetTabSelected(bool newBool)
+    {
+        tabSelected = newBool;
+    }
+    #endregion
 
     public void SetCharacter(BattleCharacter newCharacter)
     {
@@ -356,6 +451,12 @@ public class BattleUIHandler : MonoBehaviour
                 actHandler.SetCharacter(character);
             }
         }
+    }
+
+    public void SetBattleHandler(BattleHandler bh)
+    {
+        battleHandler = bh;
+        battleHandler.SetUiHandler(this);
     }
 
     public void AttemptRun()
@@ -378,8 +479,55 @@ public class BattleUIHandler : MonoBehaviour
         }
     }
 
-    public void SetTabSelected(bool newBool)
+    public void StartCharacterAttack()
     {
-        tabSelected = newBool;
+        if (battleHandler != null)
+        {
+            battleHandler.StartAttack(character.GetCurrentAttack());
+        }
+
+        characterAttacking = true;
+
+        if (selectionZone != null)
+        {
+            selectionZone.SetActive(false);
+        }
+
+        if (battleBackground != null)
+        {
+            battleBackground.gameObject.SetActive(true);
+        }
+
+        if (fightWaypoint != null)
+        {
+            moveHealth = true;
+            healthWaypoint = fightWaypoint;
+        }
+    }
+
+    public void EndCharacterAttack()
+    {
+        characterAttacking = false;
+
+        if (selectionZone != null)
+        {
+            selectionZone.SetActive(true);
+        }
+
+        if (battleBackground != null)
+        {
+            battleBackground.gameObject.SetActive(false);
+        }
+
+        if (selectionWaypoint != null)
+        {
+            moveHealth = true;
+            healthWaypoint = selectionWaypoint;
+        }
+
+        if (character != null)
+        {
+            character.GetNextAttack();
+        }
     }
 }

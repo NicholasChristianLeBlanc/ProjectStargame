@@ -16,7 +16,13 @@ MonoBehaviour:
   m_CharacterName: Battle Test
   m_BattleChoices:
   - {fileID: 11400000, guid: 266d0c611fcb7d041b508451dad647d1, type: 2}
+  m_attacks:
+  - {fileID: 2989313558804637420, guid: 1d5b5e0212e30e84487f4183e6146237, type: 3}
   m_MaxSatisfaction: 100
   m_CurrentSatisfaction: 0
-  m_MaxHealth: 0
-  m_CurrentHealth: 0
+  m_MaxHealth: 100
+  m_CurrentHealth: 100
+  m_Defense: 0
+  m_AttacksFirst: 1
+  m_TakesDamage: 0
+  m_GainsSatisfaction: 0
